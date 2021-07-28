@@ -15,7 +15,15 @@ from matplotlib import mlab
 import scipy
 from geopy.geocoders import Nominatim
 
+import validators
 
+# Setting Page Layout to Wide
+st.set_page_config(
+    page_title="RiverLevelsUk",
+    page_icon="",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 # Add Disebar 
 user_river_input = st.sidebar.text_input("Enter River and section. Example:", "river-exe-exeter-trews-weir")
@@ -30,6 +38,11 @@ if user_river_input:
 # Add title 
 st.title(river_name_section.title())
 
+# Check if URL valid and append. to multiselect if not already in array. 
+print("Checking URL")
+if validators.url("https://riverlevels.uk/{river_name_section}/data/json"):
+    print("This URL is valid")
+    user_river_input.append(user_river_input)
 
 url = (f"https://riverlevels.uk/{river_name_section}/data/json")
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'}
@@ -79,18 +92,30 @@ json_levels = json_data['levels']
 
 # DataFram Header
 st.subheader("Historical Data")
+st.text("")
 
 # Create Pandas DataFrame
 df = pd.DataFrame.from_dict(json_levels)
-
 
 # DataFrame strings to floats. 
 df["max_level"] = pd.to_numeric(df["max_level"], downcast="float")
 df["min_level"] = pd.to_numeric(df["min_level"], downcast="float")
 df["avg_level"] = pd.to_numeric(df["avg_level"], downcast="float")
 
-# Show DataFrame
-st.write(df)
+# Round df values
+decimals = 1    
+df['max_level'] = df['max_level'].apply(lambda x: round(x, decimals))
+df['max_level'] = df['max_level'].round(2)
+df['min_level'] = df['min_level'].apply(lambda x: round(x, decimals))
+df['avg_level'] = df['avg_level'].apply(lambda x: round(x, decimals))
+
+
+# Centre DataFrame using columns 
+data_fame_col1, data_fame_col2, data_fame_col3 = st.beta_columns([1,2,1])
+
+with data_fame_col2:
+    # Show DataFrame
+    st.write(df, use_container_width=True)
 
 # Write Pandas DataFrame to site
 #if st.checkbox('view_data'):
@@ -108,10 +133,11 @@ min_low = df["min_level"].min()
 typical_low = df["max_level"].min()
 
 
-    
+# DataFram Header
+st.subheader("Long Term Gague Measurements")
 
 # Time Series Plot 
-fig = px.line(df, x='record_date', y=['avg_level'], title='Long Term Gague Measurements', width=800, height=600)
+fig = px.line(df, x='record_date', y=['avg_level'], height=600)
 
 fig.add_hline(y=typical_high, line=dict(
                         color='red',
@@ -141,31 +167,77 @@ fig.update_xaxes(
     )
 )
 
+
 # Plot figure to streamlit
-st.plotly_chart(fig)
+st.plotly_chart(fig,  use_container_width=True)
 
 x = df["avg_level"]
 
+# DataFram Header
+st.subheader("Percentile exceedance of gauge")
+st.text("")
 
-# Cumulative Histograms
-
-hist, bin_edges = np.histogram(x, bins=100, density=True)
-cdf = np.cumsum(hist * np.diff(bin_edges))
-cumm_fig = go.Figure(data=[
-    go.Bar(x=bin_edges, y=hist, name='Histogram'),
-    go.Scatter(x=bin_edges, y=cdf, name='CDF')
-])
-
-cumm_fig.update_layout(
-    title="Frequency of Gague occurance",
-    xaxis_title="Gague (m)",
-    yaxis_title="Frequency",
-    legend_title="",
-    width=800, 
-    height=600)
+col1, col2 = st.beta_columns((2,1))
 
 
-st.plotly_chart(cumm_fig)
+# Percentile Chart
+
+with col1:
+
+    percentiles = [1,10,20,30,40,50,60,70,80,90,95,99]
+
+    gauges = []
+
+    for i in percentiles:
+        p = np.percentile(x,i)
+        gauges.append(p)
+
+
+    percentile_figure = px.line( x=percentiles, y=gauges, title="percentile chart")
+
+    percentile_figure.update_layout(
+        title=None,
+        xaxis_title="Percentile",
+        yaxis_title="Gague (m)",
+        legend_title="",
+         margin=dict(
+        l=50,
+        r=0,
+        b=100,
+        t=0,
+        pad=4
+    ),
+  
+        )
+
+    st.plotly_chart(percentile_figure, use_container_width = True)
+
+
+
+with col2: 
+    # Table for Percentile Chart
+    
+    test_fig = go.Figure(data=[go.Table(header=dict(values=['Percentiles', 'Gauge (m)']),
+                 cells=dict(
+                     values=[percentiles, gauges],
+                     font_size=12,
+                     height=27,))
+                     ])
+
+    test_fig.update_layout(
+        margin=dict(
+            l=0,
+            r=0,
+            b=0,
+            t=0,
+            pad=4
+            ),
+                )
+    
+    
+    st.plotly_chart(test_fig, use_container_width = True)
+
+
 
 # Write all json data to page
 #st.write(json_data)
