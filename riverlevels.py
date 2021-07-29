@@ -17,6 +17,8 @@ from geopy.geocoders import Nominatim
 
 import validators
 
+from data import UK_river_stations, Scotland_river_stations, Wales_river_stations, Uk_Scotland_Wales
+
 # Setting Page Layout to Wide
 st.set_page_config(
     page_title="RiverLevelsUk",
@@ -29,26 +31,45 @@ st.set_page_config(
 user_river_input = st.sidebar.text_input("Enter River and section. Example:", "river-exe-exeter-trews-weir")
 river_name_section = user_river_input
 
-# Multiselect
-user_river_input = st.sidebar.multiselect('Or choose from previous selections:', ['river-exe-exford', 'river-exe-tiverton-stoodleigh', 'river-avon-evesham'])
+# Multiselect test
+country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country 
 
-if user_river_input:
-    river_name_section = user_river_input[-1]
+# Select County 
+county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country]) # Select Country 
+
+# Select Monitoring Section  
+monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', Uk_Scotland_Wales[country][county]) # Select monitoring section 
+
+monitoring_section = monitoring_section.replace(' ', '-')
+monitoring_section = monitoring_section.replace(',', '')
+
 
 # Add title 
-st.title(river_name_section.title())
+st.title(monitoring_section.title())
 
-# Check if URL valid and append. to multiselect if not already in array. 
-print("Checking URL")
-if validators.url("https://riverlevels.uk/{river_name_section}/data/json"):
-    print("This URL is valid")
-    user_river_input.append(user_river_input)
+# Need to check both circumstance (with county in url and without )
+request = requests.get(f"https://riverlevels.uk/{county}-{monitoring_section}/data/json")
 
-url = (f"https://riverlevels.uk/{river_name_section}/data/json")
+url_0 = (f"https://riverlevels.uk/{county}-{monitoring_section}/data/json")
+url_1 = (f"https://riverlevels.uk/{monitoring_section}/data/json")
+url_2 = (f"https://riverlevels.uk/{monitoring_section}-{county}/data/json")
+
+# Remove first word from monitoring section
+monitoring_section_first_word_removed = monitoring_section.split('-')[0]
+
+url_3 = (f"https://riverlevels.uk/{monitoring_section_first_word_removed}/data/json")
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'}
 
+url_tests = [url_0, url_1, url_2, url_3]
 
-json_data = requests.get(url=url).json()
+for i in url_tests: 
+    try:
+        json_data = requests.get(url=i).json()
+    except ValueError:  # includes simplejson.decoder.JSONDecodeError
+        print ('Decoding JSON has failed on url:', i)
+    else: 
+        json_data = requests.get(url=i).json()
+    
 
 # Location 
 river_location = json_data['info']['name']
@@ -211,7 +232,6 @@ with col1:
         )
 
     st.plotly_chart(percentile_figure, use_container_width = True)
-
 
 
 with col2: 
