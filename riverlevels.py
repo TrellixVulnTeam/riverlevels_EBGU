@@ -38,38 +38,27 @@ country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Co
 county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country]) # Select Country 
 
 # Select Monitoring Section  
-monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', Uk_Scotland_Wales[country][county]) # Select monitoring section 
+#print(Uk_Scotland_Wales[country][county])
 
-monitoring_section = monitoring_section.replace(' ', '-')
-monitoring_section = monitoring_section.replace(',', '')
+selected_county = Uk_Scotland_Wales[country][county]
 
+list_of_monitoring_sections_names = [x[0] for x in selected_county]
+
+monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names) # Select monitoring section 
+
+# Get Monitoring section URL
+for i in selected_county:
+    if monitoring_section in i:
+        monitoring_section_url = i[1]
 
 # Add title 
 st.title(monitoring_section.title())
 
 # Need to check both circumstance (with county in url and without )
-request = requests.get(f"https://riverlevels.uk/{county}-{monitoring_section}/data/json")
-
-url_0 = (f"https://riverlevels.uk/{county}-{monitoring_section}/data/json")
-url_1 = (f"https://riverlevels.uk/{monitoring_section}/data/json")
-url_2 = (f"https://riverlevels.uk/{monitoring_section}-{county}/data/json")
-
-# Remove first word from monitoring section
-monitoring_section_first_word_removed = monitoring_section.split('-')[0]
-
-url_3 = (f"https://riverlevels.uk/{monitoring_section_first_word_removed}/data/json")
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'}
+url = (f"{monitoring_section_url}/data/json")
 
-url_tests = [url_0, url_1, url_2, url_3]
-
-for i in url_tests: 
-    try:
-        json_data = requests.get(url=i).json()
-    except ValueError:  # includes simplejson.decoder.JSONDecodeError
-        print ('Decoding JSON has failed on url:', i)
-    else: 
-        json_data = requests.get(url=i).json()
-    
+json_data = requests.get(url=url).json()
 
 # Location 
 river_location = json_data['info']['name']

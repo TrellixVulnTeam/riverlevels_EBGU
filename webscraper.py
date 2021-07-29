@@ -3,6 +3,7 @@ import requests
 from selenium import webdriver
 import time
 import pprint
+import numpy as np
 
 PATH = '/Applications/chromedriver'
 driver = webdriver.Chrome(PATH)
@@ -24,7 +25,6 @@ Uk_countys = ["Bedfordshire", "Berkshire", "Bristol", "Buckinghamshire", "Cambri
 
 # Dict of UK countys (key) and monitoring staions (value)
 
-
 UK_river_stations = {}
 
 for i in Uk_countys:
@@ -34,37 +34,37 @@ for i in Uk_countys:
     driver.get(f'https://riverlevels.uk/levels/{i}') # Opens county page
     twocol = driver.find_element_by_class_name('twocol') #
     links = twocol.find_elements_by_tag_name('a')
+
+    all_links = []
     for link in links:
         href = link.get_attribute('href')
+        all_links.append(href)
         if href is not None:
             pass
             #print(href)
    
-    twocol_text = twocol.text
+    twocol_text = twocol.text # Gets text within twocol class
 
-    twocol_text_split = twocol_text.split('\n')
+    twocol_text_split = twocol_text.split('\n') # Splits text into array 
 
-    UK_river_stations[i] = twocol_text_split
-    
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(UK_river_stations)
-    
+    text_and_links  = zip(twocol_text_split, all_links) # Zips text and links together 
 
-    time.sleep(5)
+    UK_river_stations[i] = list(text_and_links) # Appends text and links to dictionary.
+
+    time.sleep(5) 
 
 print(UK_river_stations)
 
-"""
+#pp = pprint.PrettyPrinter(indent=2)
+#pp.pprint(UK_river_stations)
 
-# Dictionary of Countys and subsections
-Uk_subsections_test = {'Bedfordshire':['Bedford Road Sluice Northampton Automation','Beofrd GS'], 'Berkshire':['Haymills FD', 'Jubilee River at Manor Farm Weir']}
+
+
 
 # Scotland 
 Scotland_county_stations = ["Aberdeenshire (20 monitoring stations)", "Angus (11 monitoring stations)", "Argyll and Bute (16 monitoring stations)", "Ayrshire and Arran (26 monitoring stations)", "Banffshire (9 monitoring stations)", "Berwickshire (8 monitoring stations)", "Caithness (4 monitoring stations)", "City of Aberdeen (4 monitoring stations)", "City of Dundee (1 monitoring stations)", "City of Edinburgh (7 monitoring stations)", "City of Glasgow (1 monitoring stations)", "Clackmannan (1 monitoring stations)", "Dumfries (19 monitoring stations)", "Dunbartonshire (12 monitoring stations)", "East Lothian (9 monitoring stations)", "Fife (5 monitoring stations)", "Inverness (37 monitoring stations)", "Kincardineshire (7 monitoring stations)", "Lanarkshire (17 monitoring stations)", "Midlothian (2 monitoring stations)", "Moray (9 monitoring stations)", "Nairn (1 monitoring stations)", "Orkney (3 monitoring stations)", "Perth and Kinross (33 monitoring stations)", "Renfrewshire (7 monitoring stations)", "Ross and Cromarty (22 monitoring stations)", "Roxburgh, Ettrick and Lauderdale (22 monitoring stations)", "Shetland (3 monitoring stations)", "Stirling and Falkirk (18 monitoring stations)", "Sutherland (20 monitoring stations)", "The Stewartry of Kirkcudbright (4 monitoring stations)", "Tweeddale (10 monitoring stations)", "West Lothian (2 monitoring stations)", "Western Isles (8 monitoring stations)", "Wigtown (14 monitoring stations)"]
 
 Scotland_countys = ["Aberdeenshire", "Angus", "Argyll and Bute", "Ayrshire and Arran", "Banffshire", "Berwickshire", "Caithness", "City of Aberdeen", "City of Dundee", "City of Edinburgh", "City of Glasgow", "Clackmannan", "Dumfries", "Dunbartonshire", "East Lothian", "Fife", "Inverness", "Kincardineshire", "Lanarkshire", "Midlothian", "Moray", "Nairn", "Orkney", "Perth and Kinross", "Renfrewshire", "Ross and Cromarty", "Roxburgh, Ettrick and Lauderdale", "Shetland", "Stirling and Falkirk", "Sutherland", "The Stewartry of Kirkcudbright", "Tweeddale", "West Lothian", "Western Isles", "Wigtown"]
-
-
 
 Scotland_river_stations = {}
 
@@ -72,22 +72,36 @@ for i in Scotland_countys:
     if ' ' in i:
         i = i.replace(' ', '-')
 
-    driver.get(f'https://riverlevels.uk/levels/{i}')
-    twocol = driver.find_element_by_class_name('twocol')
-    twocol_text = twocol.text
+    driver.get(f'https://riverlevels.uk/levels/{i}') # Opens county page
+    twocol = driver.find_element_by_class_name('twocol') #
+    links = twocol.find_elements_by_tag_name('a')
 
-    twocol_text_split = twocol_text.split('\n')
+    all_links = []
+    for link in links:
+        href = link.get_attribute('href')
+        all_links.append(href)
+        if href is not None:
+            pass
+            #print(href)
+   
+    twocol_text = twocol.text # Gets text within twocol class
 
-    Scotland_river_stations[i] = twocol_text_split
+    twocol_text_split = twocol_text.split('\n') # Splits text into array 
 
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(Scotland_river_stations)
+    text_and_links  = zip(twocol_text_split, all_links) # Zips text and links together 
+
+    Scotland_river_stations[i] = list(text_and_links) # Appends text and links to dictionary.
 
     time.sleep(5)
-
+    
 print(Scotland_river_stations)
 
 
+
+#pp = pprint.PrettyPrinter(indent=2)
+#pp.pprint(Scotland_river_stations)
+
+"""
 
 # Wales
 Wales_county_stations = ["Clwyd (25 monitoring stations)", "Dyfed (70 monitoring stations)", "Gwent (26 monitoring stations)", "Gwynedd (23 monitoring stations)", "Mid Glamorgan (28 monitoring stations)", "Powys (50 monitoring stations)", "South Glamorgan (8 monitoring stations)"]
@@ -96,25 +110,36 @@ Wales_countys = ["Clwyd", "Dyfed", "Gwent", "Gwynedd", "Mid Glamorgan", "Powys",
 
 Wales_river_stations = {}
 
-
-
 for i in Wales_countys:
     if ' ' in i:
         i = i.replace(' ', '-')
 
-    driver.get(f'https://riverlevels.uk/levels/{i}')
-    twocol = driver.find_element_by_class_name('twocol')
-    twocol_text = twocol.text
+    driver.get(f'https://riverlevels.uk/levels/{i}') # Opens county page
+    twocol = driver.find_element_by_class_name('twocol') #
+    links = twocol.find_elements_by_tag_name('a')
 
-    twocol_text_split = twocol_text.split('\n')
+    all_links = []
+    for link in links:
+        href = link.get_attribute('href')
+        all_links.append(href)
+        if href is not None:
+            pass
+            #print(href)
+   
+    twocol_text = twocol.text # Gets text within twocol class
 
-    Wales_river_stations[i] = twocol_text_split
+    twocol_text_split = twocol_text.split('\n') # Splits text into array 
 
-    pp = pprint.PrettyPrinter(indent=2)
-    pp.pprint(Wales_river_stations)
+    text_and_links  = zip(twocol_text_split, all_links) # Zips text and links together 
+
+    Wales_river_stations[i] = list(text_and_links) # Appends text and links to dictionary.
 
     time.sleep(5)
-
+    
 print(Wales_river_stations)
+
+pp = pprint.PrettyPrinter(indent=2)
+pp.pprint(Wales_river_stations)
+
 
 """
