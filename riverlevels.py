@@ -304,9 +304,12 @@ def footer():
         "Made by ",
         link("https://github.com/TomNewton1", "@Thomas Newton"),
         br(),
+        "Github ",
+        link("https://github.com/TomNewton1/riverlevels", "repository"), image('https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+              width=px(19), height=px(19), margin= "0em", align="top"),
+        br(),
         "Data Sourced from ",
         link("https://riverlevels.uk/", "riverlevels.uk"),
-        br(),
     ]
     layout(*myargs)
 
