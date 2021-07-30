@@ -10,3 +10,4 @@ geopy==2.2.0
 validators==0.18.2
 beautifulsoup4==4.9.3
 selenium==3.141.0
+htbuilder==0.5.0
