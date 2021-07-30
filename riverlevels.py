@@ -6,10 +6,9 @@ import numpy as np
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
-
-import numpy as np
-import matplotlib.pyplot as plt
 import plotly.figure_factory as ff
+
+import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
 from matplotlib import mlab
 import scipy
