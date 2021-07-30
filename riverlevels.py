@@ -7,8 +7,8 @@ from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
 import plotly.figure_factory as ff
-
 import matplotlib.pyplot as plt
+
 from matplotlib.ticker import PercentFormatter
 from matplotlib import mlab
 import scipy
@@ -251,8 +251,65 @@ with col2:
     st.plotly_chart(test_fig, use_container_width = True)
 
 
+#### Create Footer ###
 
-# Write all json data to page
-#st.write(json_data)
+from htbuilder import HtmlElement, div, ul, li, br, hr, a, p, img, styles, classes, fonts
+from htbuilder.units import percent, px
+from htbuilder.funcs import rgba, rgb
 
 
+def image(src_as_string, **style):
+    return img(src=src_as_string, style=styles(**style))
+
+def link(link, text, **style):
+    return a(_href=link, _target="_blank", style=styles(**style))(text)
+
+def layout(*args):
+
+    style = """
+    <style>
+      # MainMenu {visibility: hidden;}
+      footer {visibility: hidden;}
+    </style>
+    """
+
+    style_div = styles(
+        left=0,
+        bottom=0,
+        margin=px(0, 0, 0, 0),
+        width=percent(100),
+        text_align="center",
+        height="60px",
+        opacity=1
+    )
+
+    style_hr = styles(
+    )
+
+    body = p()
+    foot = div(style=style_div)(hr(style=style_hr), body)
+
+    st.markdown(style, unsafe_allow_html=True)
+
+    for arg in args:
+        if isinstance(arg, str):
+            body(arg)
+        elif isinstance(arg, HtmlElement):
+            body(arg)
+
+    st.markdown(str(foot), unsafe_allow_html=True)
+
+def footer():
+    myargs = [
+        "Made by ",
+        link("https://github.com/TomNewton1", "@Thomas Newton"),
+        br(),
+        "Data Sourced from ",
+        link("https://riverlevels.uk/", "riverlevels.uk"),
+        br(),
+    ]
+    layout(*myargs)
+
+
+if __name__ == "__main__":
+    footer()
