@@ -28,8 +28,8 @@ st.set_page_config(
 )
 
 # Add Disebar 
-user_river_input = st.sidebar.text_input("Enter River and section. Example:", "river-exe-exeter-trews-weir")
-river_name_section = user_river_input
+#user_river_input = st.sidebar.text_input("Enter River and section. Example:", "river-exe-exeter-trews-weir")
+#river_name_section = user_river_input
 
 # Multiselect test
 country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country 
@@ -50,6 +50,7 @@ monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_
 for i in selected_county:
     if monitoring_section in i:
         monitoring_section_url = i[1]
+        break
 
 # Add title 
 st.title(monitoring_section.title())
@@ -86,15 +87,19 @@ geolocator = Nominatim(user_agent="riverlevels")
 
 location = geolocator.geocode(f"{river_location}, UK")
 
-lat = location.latitude
-lon = location.longitude
+if location is None:
+    st.markdown("<h2 style='text-align: center; color: red;'>There is no map location for this monitoring spot!</h2>", unsafe_allow_html=True)
 
-map_df = pd.DataFrame({
-    'location' : [location,],
-    'lat' : lat,
-    'lon' : lon
-})
-st.map(map_df)
+else:
+    lat = location.latitude
+    lon = location.longitude
+
+    map_df = pd.DataFrame({
+        'location' : [location,],
+        'lat' : lat,
+        'lon' : lon
+    })
+    st.map(map_df)
 
 
 # Get levels only 
