@@ -34,7 +34,7 @@ st.set_page_config(
 country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country 
 
 # Select County 
-county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country]) # Select Country 
+county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country 
 
 # Select Monitoring Section  
 #print(Uk_Scotland_Wales[country][county])
@@ -43,7 +43,7 @@ selected_county = Uk_Scotland_Wales[country][county]
 
 list_of_monitoring_sections_names = [x[0] for x in selected_county]
 
-monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names) # Select monitoring section 
+monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names, index=68) # Select monitoring section 
 
 # Get Monitoring section URL
 for i in selected_county:
@@ -200,12 +200,17 @@ with col1:
 
     percentiles = [1,10,20,30,40,50,60,70,80,90,95,99]
 
+    array = np.array(x)
+
     gauges = []
 
     for i in percentiles:
-        p = np.percentile(x,i)
+        p = np.percentile(array,i)
+        print(f"{i} = {p}")
         gauges.append(p)
 
+    sum_gauges = sum(gauges)
+    print(f"Sum gauges: ", sum_gauges)
 
     percentile_figure = px.line( x=percentiles, y=gauges, title="percentile chart")
 
