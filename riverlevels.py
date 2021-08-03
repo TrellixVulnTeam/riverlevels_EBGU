@@ -34,7 +34,7 @@ st.set_page_config(
 country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country 
 
 # Select County 
-county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country 
+county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country #index=9 sets default to Devon
 
 # Select Monitoring Section  
 #print(Uk_Scotland_Wales[country][county])
@@ -43,7 +43,7 @@ selected_county = Uk_Scotland_Wales[country][county]
 
 list_of_monitoring_sections_names = [x[0] for x in selected_county]
 
-monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names, index=68) # Select monitoring section 
+monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names, index=68) # Select monitoring section #index=68 sets default to Trews Weir
 
 # Get Monitoring section URL
 for i in selected_county:
@@ -109,6 +109,7 @@ st.subheader("Historical Data")
 st.text("")
 
 # Create Pandas DataFrame
+df = None
 df = pd.DataFrame.from_dict(json_levels)
 
 # DataFrame strings to floats. 
@@ -187,6 +188,7 @@ st.plotly_chart(fig,  use_container_width=True)
 
 x = df["avg_level"]
 
+
 # DataFram Header
 st.subheader("Percentile exceedance of gauge")
 st.text("")
@@ -198,23 +200,43 @@ col1, col2 = st.beta_columns((2,1))
 
 with col1:
 
-    percentiles = [1,10,20,30,40,50,60,70,80,90,95,99]
+    # Percentile Chart
 
-    array = np.array(x)
+    sorted_df = None
+    sorted_df = df.sort_values(by="avg_level", ascending=False)
 
-    gauges = []
+    sorted_df['rank']=sorted_df['avg_level'].rank(method="min", ascending=False, na_option='bottom')
 
-    for i in percentiles:
-        p = np.percentile(array,i)
-        print(f"{i} = {p}")
-        gauges.append(p)
+    num_events = len(sorted_df.index)
 
-    sum_gauges = sum(gauges)
-    print(f"Sum gauges: ", sum_gauges)
+    exceedance_probability_column = []
+    
+    for row in sorted_df.values:
+        exceedance_probability = (row[4]/(num_events+1))*100
 
-    percentile_figure = px.line( x=percentiles, y=gauges, title="percentile chart")
+        exceedance_probability_column.append(exceedance_probability)
+    
+    sorted_df['exceedance_probability'] = exceedance_probability_column
 
-    percentile_figure.update_layout(
+    sorted_df_by_probability = sorted_df.sort_values(by="exceedance_probability", ascending=True)
+
+    x_axis_data = sorted_df_by_probability['exceedance_probability']
+    y_axis_data = sorted_df_by_probability['avg_level']
+
+    # Get gauge at percentile 
+
+    percentiles = [0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99]
+    gauge_at_percentile = []
+
+    for i in percentiles[::-1]:
+        gauge_probability = sorted_df_by_probability.avg_level.quantile(i)
+        gauge_at_percentile.append(gauge_probability)
+
+    # Create percentile figure 
+
+    new_percentile_figure = go.Figure(data=go.Scatter(x=x_axis_data, y=y_axis_data), layout_xaxis_range=[1,99], layout_yaxis_range=[gauge_at_percentile[11], gauge_at_percentile[0]])
+
+    new_percentile_figure.update_layout(
         title=None,
         xaxis_title="Percentile",
         yaxis_title="Gague (m)",
@@ -228,16 +250,18 @@ with col1:
     ),
   
         )
+    
 
-    st.plotly_chart(percentile_figure, use_container_width = True)
+    st.plotly_chart(new_percentile_figure, use_container_width = True)
 
 
-with col2: 
+with col2:
+
     # Table for Percentile Chart
     
     test_fig = go.Figure(data=[go.Table(header=dict(values=['Percentiles', 'Gauge (m)']),
                  cells=dict(
-                     values=[percentiles, gauges],
+                     values=[percentiles, gauge_at_percentile],
                      font_size=12,
                      height=27,))
                      ])
