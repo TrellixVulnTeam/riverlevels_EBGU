@@ -31,10 +31,14 @@ st.set_page_config(
 #river_name_section = user_river_input
 
 # Multiselect test
-country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country 
+country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country #index=1 sets default to Scotland
 
 # Select County 
-county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country #index=9 sets default to Devon
+if country == "Uk":
+    county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country #index=9 sets default to Devon
+else:
+    county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country]) 
+
 
 # Select Monitoring Section  
 #print(Uk_Scotland_Wales[country][county])
@@ -43,7 +47,10 @@ selected_county = Uk_Scotland_Wales[country][county]
 
 list_of_monitoring_sections_names = [x[0] for x in selected_county]
 
-monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names, index=68) # Select monitoring section #index=68 sets default to Trews Weir
+if county == "Devon":
+    monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names, index=68) # Select monitoring section #index=68 sets default to Trews Weir
+else: 
+    monitoring_section = st.sidebar.selectbox('Select Monitoring Section:', list_of_monitoring_sections_names) 
 
 # Get Monitoring section URL
 for i in selected_county:
