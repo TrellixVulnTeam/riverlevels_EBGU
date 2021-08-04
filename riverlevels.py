@@ -41,7 +41,6 @@ else:
 
 
 # Select Monitoring Section  
-#print(Uk_Scotland_Wales[country][county])
 
 selected_county = Uk_Scotland_Wales[country][county]
 
@@ -124,57 +123,56 @@ df["max_level"] = pd.to_numeric(df["max_level"], downcast="float")
 df["min_level"] = pd.to_numeric(df["min_level"], downcast="float")
 df["avg_level"] = pd.to_numeric(df["avg_level"], downcast="float")
 
-# Round df values
-decimals = 1    
-df['max_level'] = df['max_level'].apply(lambda x: round(x, decimals))
-df['max_level'] = df['max_level'].round(2)
-df['min_level'] = df['min_level'].apply(lambda x: round(x, decimals))
-df['avg_level'] = df['avg_level'].apply(lambda x: round(x, decimals))
 
+# Creates Data Frame which shows values to 2 decimal places.
+
+display_df = df[['max_level', 'min_level', 'avg_level']].copy()
+   
+display_df['max_level'] = display_df['max_level'].map('{:,.2f}'.format)
+display_df['min_level'] = display_df['min_level'].map('{:,.2f}'.format)
+display_df['avg_level'] = display_df['avg_level'].map('{:,.2f}'.format)
 
 # Centre DataFrame using columns 
 data_fame_col1, data_fame_col2, data_fame_col3 = st.beta_columns([1,2,1])
 
+# Getting percnetile values for the plot. (Get gauge at percentile)
+
+percentiles = [0.01,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99]
+gauge_at_percentile = []
+
+for i in percentiles[::-1]:
+    gauge_probability = df.avg_level.quantile(i)
+    gauge_at_percentile.append(gauge_probability)
+
 with data_fame_col2:
-    # Show DataFrame
-    st.write(df, use_container_width=True)
 
-# Write Pandas DataFrame to site
-#if st.checkbox('view_data'):
+    # Table for Data, using data from display_df data to two decimal places. 
+    
+    test_table = go.Figure(data=[go.Table(header=dict(values=['max_level (m)', 'min_level (m)', 'avg_level (m)']),
+                 cells=dict(
+                     values=[display_df['max_level'], display_df['min_level'], display_df['avg_level']],
+                     font_size=12,
+                     height=27,))
+                     ])
 
-# Max High 
-max_high = df["max_level"].max()
-
-# Typical High 
-typical_high = df["max_level"].mean()
-
-# Min Low 
-min_low = df["min_level"].min()
-
-# Tpical Low 
-typical_low = df["max_level"].min()
-
+    test_table.update_layout(
+        margin=dict(
+            l=0,
+            r=0,
+            b=0,
+            t=0,
+            pad=4
+            ),
+                )
+    
+    st.plotly_chart(test_table, use_container_width = True)
 
 # DataFram Header
-st.subheader("Long Term Gague Measurements")
+st.subheader(f"Long Term Gague Measurements - {monitoring_section}")
 
 # Time Series Plot 
 fig = px.line(df, x='record_date', y=['avg_level'], height=600)
 
-fig.add_hline(y=typical_high, line=dict(
-                        color='red',
-                        width=5
-                    ),)
-fig.add_hline(y=typical_low, line=dict(
-                        color='green',
-                        width=5
-                    ),)
-
-fig.update_layout(
-    yaxis_range=[min_low,max_high], 
-    xaxis_title="Date",
-    yaxis_title="Gague (m)",
-    legend_title="",)
 
 fig.update_xaxes(
     rangeslider_visible=True,
@@ -189,19 +187,43 @@ fig.update_xaxes(
     )
 )
 
+# Update Long Term Gauge Measurements Plot with updated max and min lines 
+
+fig.add_hline(y=gauge_at_percentile[1],
+                    line_dash="dot",
+                    annotation_text=f"Q10: {round(gauge_at_percentile[1],2)}", 
+                    annotation_position="bottom right",
+                    annotation=dict(font_size=15, font_family="Arial Black"),
+                    line=dict(
+                        color='red',
+                        width=5,
+                    ),)
+fig.add_hline(y=gauge_at_percentile[11],
+                    line_dash="dot",
+                    annotation_text=f"Q90: {round(gauge_at_percentile[11],2)}", 
+                    annotation_position="bottom right", 
+                    annotation=dict(font_size=15, font_family="Arial Black"),
+                    line=dict(
+                        color='green',
+                        width=5
+                    ),)
+
+fig.update_layout(
+    yaxis_range=[gauge_at_percentile[11]-0.5,gauge_at_percentile[0]+0.5], 
+    xaxis_title="Date",
+    yaxis_title="Gague (m)",
+    legend_title="",)
 
 # Plot figure to streamlit
 st.plotly_chart(fig,  use_container_width=True)
 
 x = df["avg_level"]
 
-
 # DataFram Header
-st.subheader("Percentile exceedance of gauge")
+st.subheader(f"Flow Duration Curve - {monitoring_section}")
 st.text("")
 
 col1, col2 = st.beta_columns((2,1))
-
 
 # Percentile Chart
 
@@ -239,6 +261,10 @@ with col1:
         gauge_probability = sorted_df_by_probability.avg_level.quantile(i)
         gauge_at_percentile.append(gauge_probability)
 
+    # Limit gauge at percentil to two decimal places
+
+    gauge_at_percentile = [round(num, 2) for num in gauge_at_percentile]
+
     # Create percentile figure 
 
     new_percentile_figure = go.Figure(data=go.Scatter(x=x_axis_data, y=y_axis_data), layout_xaxis_range=[1,99], layout_yaxis_range=[gauge_at_percentile[11], gauge_at_percentile[0]])
@@ -258,15 +284,15 @@ with col1:
   
         )
     
-
     st.plotly_chart(new_percentile_figure, use_container_width = True)
-
 
 with col2:
 
     # Table for Percentile Chart
+
+    percentiles = [1,10,20,30,40,50,60,70,80,90,95,99]
     
-    test_fig = go.Figure(data=[go.Table(header=dict(values=['Percentiles', 'Gauge (m)']),
+    test_fig = go.Figure(data=[go.Table(header=dict(values=['Percentiles (%)', 'Gauge (m)']),
                  cells=dict(
                      values=[percentiles, gauge_at_percentile],
                      font_size=12,
@@ -283,9 +309,7 @@ with col2:
             ),
                 )
     
-    
     st.plotly_chart(test_fig, use_container_width = True)
-
 
 #### Create Footer ###
 
