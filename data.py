@@ -32,7 +32,7 @@ Wales_river_stations = {'Clwyd': [('Llandudno', 'https://riverlevels.uk/llandudn
 
 Uk_Scotland_Wales = {}
 
-Uk_Scotland_Wales['Uk'] = UK_river_stations
+Uk_Scotland_Wales['England'] = UK_river_stations
 Uk_Scotland_Wales['Scotland'] = Scotland_river_stations
 Uk_Scotland_Wales['Wales'] = Wales_river_stations
 

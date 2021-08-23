@@ -34,7 +34,7 @@ st.set_page_config(
 country = st.sidebar.selectbox('Select Country:', Uk_Scotland_Wales) # Select Country #index=1 sets default to Scotland
 
 # Select County 
-if country == "Uk":
+if country == "England":
     county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country], index=9) # Select Country #index=9 sets default to Devon
 else:
     county = st.sidebar.selectbox('Select County:', Uk_Scotland_Wales[country]) 
